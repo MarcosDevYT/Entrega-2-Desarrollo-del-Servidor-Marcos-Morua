@@ -1,7 +1,10 @@
-import { promises as fs } from "fs";
-import { validatePostProduct, validatePutProduct } from "./validaciones.js";
+const { promises: fs } = require("fs");
+const {
+  validatePostProduct,
+  validatePutProduct,
+} = require("../utils/validaciones.js");
 
-export class ProductManager {
+class ProductManager {
   constructor(path) {
     this.path = path;
     this.id = 0;
@@ -9,19 +12,31 @@ export class ProductManager {
 
   // Function para generar un id autoincremental
   async generateId() {
-    // Leemos el archivo y parseamos el JSON
     const data = await fs.readFile(this.path, "utf-8");
     const products = JSON.parse(data);
 
-    // Si no hay productos, el id es 0
-    if (products.length === 0) {
+    // Obtener todos los IDs existentes
+    const ids = products.map((product) => product.id);
+
+    // Si no hay productos, devolvemos 0
+    if (ids.length === 0) {
       this.id = 0;
-    } else {
-      // Si hay productos, buscamos el id más alto y le sumamos 1
-      const maxId = Math.max(...products.map((product) => product.id));
-      this.id = maxId + 1;
+      return this.id;
     }
 
+    // Ordenamos los IDs de menor a mayor
+    ids.sort((a, b) => a - b);
+
+    // Buscamos el primer ID faltante en la secuencia
+    for (let i = 0; i < ids.length; i++) {
+      if (ids[i] !== i) {
+        this.id = i;
+        return this.id;
+      }
+    }
+
+    // Si no faltan IDs en la secuencia, usamos el siguiente número
+    this.id = ids.length;
     return this.id;
   }
 
@@ -141,3 +156,5 @@ export class ProductManager {
     }
   }
 }
+
+module.exports = { ProductManager };

@@ -1,0 +1,60 @@
+<main class="container mx-auto py-6 px-4">
+
+  <section class="p-8 border rounded-lg border-black/10 shadow-lg bg-white">
+
+    <article class="flex justify-between items-center mb-8">
+
+      <h1 class="font-bold text-2xl">Listado de Productos</h1>
+
+      <button id="modalFormBtn"
+        class="cursor-pointer font-medium text-sm flex items-center justify-center px-3 py-2 rounded-md border border-black/10 text-white bg-black hover:bg-black/90 gap-2">
+        Agregar Producto
+      </button>
+    </article>
+
+    <article class="overflow-x-auto">
+      {{#if products.length}}
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-black/10 hover:bg-black/10">
+              <th class="font-medium text-left text-base px-2 py-2 ">Imagen</th>
+              <th class="font-medium text-left text-base px-6 py-2 ">Nombre</th>
+              <th class="font-medium text-left text-base px-6 py-2 ">Precio</th>
+              <th class="font-medium text-left text-base px-6 py-2 ">Descripción</th>
+              <th class="font-medium text-left text-base px-6 py-2 ">Categoría</th>
+              <th class="font-medium text-left text-base px-6 py-2 ">Código</th>
+              <th class="font-medium text-left text-base px-6 py-2 ">Stock</th>
+              <th class="font-medium text-right text-base px-6 py-2 ">Acciones</th>
+            </tr>
+          </thead>
+
+
+          <tbody id="productsContainer">
+
+
+            {{#each products}}
+              <tr class="border-b border-black/10 text-left hover:bg-black/10">
+                <td class="px-2 py-2 ">
+                  <img class="w-32 h-24 object-cover rounded-md" src="{{this.thumbnails.[0]}}" alt="{{this.title}}">
+                </td>
+                <td class="px-6 py-2">{{this.title}}</td>
+                <td class="px-6 py-2">{{this.price}}</td>
+                <td class="px-6 py-2">{{this.description}}</td>
+                <td class="px-6 py-2">{{this.category}}</td>
+                <td class="px-6 py-2">{{this.code}}</td>
+                <td class="px-6 py-2">{{this.stock}}</td>
+                <td class="px-6 py-2 ">
+                  {{> itemDropdown id=this.id}}
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{else}}
+        <p>No hay productos</p>
+      {{/if}}
+    </article>
+  </section>
+
+  {{> formProducts}}
+</main>

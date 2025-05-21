@@ -1,8 +1,10 @@
-import { Router } from "express";
-import { ProductManager } from "../modules/productManager.js";
+const { Router } = require("express");
+const {
+  ProductManager,
+} = require("../controllers/productManager.controller.js");
 
 const productRouter = Router();
-const pm = new ProductManager("./data/products.json");
+const pm = new ProductManager("./src/data/products.json");
 
 // Ruta para obtener productos
 productRouter.get("/", async (req, res) => {
@@ -87,4 +89,4 @@ productRouter.delete("/:pid", async (req, res) => {
   }
 });
 
-export default productRouter;
+module.exports = productRouter;

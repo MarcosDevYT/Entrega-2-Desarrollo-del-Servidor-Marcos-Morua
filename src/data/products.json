@@ -1,0 +1,41 @@
+[
+  {
+    "title": "Prueba",
+    "description": "Prueba",
+    "code": "0329",
+    "price": 20,
+    "status": true,
+    "stock": 20,
+    "category": "Prueba",
+    "thumbnails": [
+      "https://shoe-marcos.vercel.app/_next/image?url=%2Fmen.jpg&w=750&q=75"
+    ],
+    "id": 7
+  },
+  {
+    "title": "Jordan",
+    "description": "Zapatilla",
+    "code": "54654",
+    "price": 50,
+    "status": true,
+    "stock": 20,
+    "category": "Zapatilla",
+    "thumbnails": [
+      "https://shoe-marcos.vercel.app/_next/image?url=%2Fall.jpeg&w=750&q=75"
+    ],
+    "id": 0
+  },
+  {
+    "title": "Vans",
+    "description": "Zapatilla",
+    "code": "546",
+    "price": 30,
+    "status": true,
+    "stock": 20,
+    "category": "Zapatilla",
+    "thumbnails": [
+      "https://shoe-marcos.vercel.app/_next/image?url=%2Fwomen.jpg&w=750&q=75"
+    ],
+    "id": 1
+  }
+]

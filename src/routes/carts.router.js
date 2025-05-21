@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { CartManager } from "../modules/cartManager.js";
+const { Router } = require("express");
+const { CartManager } = require("../controllers/cartManager.controller.js");
 
 const cartRouter = Router();
-const cm = new CartManager("./data/cart.json");
+const cm = new CartManager("./src/data/cart.json");
 
 // Ruta para obtener todos los carritos
 cartRouter.get("/", async (req, res) => {
@@ -77,4 +77,4 @@ cartRouter.post("/:cid/product/:pid", async (req, res) => {
   }
 });
 
-export default cartRouter;
+module.exports = cartRouter;

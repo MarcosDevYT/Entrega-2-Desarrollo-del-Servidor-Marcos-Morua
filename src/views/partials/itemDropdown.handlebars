@@ -1,0 +1,20 @@
+<div class="flex justify-end items-center h-full relative">
+  <span class="cursor-pointer dropdown-toggle">
+    <i class="ri-more-fill"></i>
+  </span>
+
+  <div
+    class="absolute hidden border border-black/10 rounded-md top-5 right-0 bg-white z-20 dropdown-menu"
+  >
+    <p class="font-medium text-base p-2 px-3">Acciones</p>
+    <hr class="border-black/10" />
+    <span
+      class="w-32 cursor-pointer p-2 px-3 text-sm hover:bg-black/10 block delete-item"
+      id="{{id}}"
+    >Eliminar</span>
+    <span
+      class="w-32 cursor-pointer p-2 px-3 text-sm hover:bg-black/10 block edit-item"
+      id="{{id}}"
+    >Editar</span>
+  </div>
+</div>

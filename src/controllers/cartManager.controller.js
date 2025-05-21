@@ -1,9 +1,9 @@
-import { promises as fs } from "fs";
-import { ProductManager } from "./productManager.js";
+const { promises: fs } = require("fs");
+const { ProductManager } = require("./productManager.controller.js");
 
 const pm = new ProductManager("./data/products.json");
 
-export class CartManager {
+class CartManager {
   constructor(path) {
     this.path = path;
     this.id = 0;
@@ -144,3 +144,5 @@ export class CartManager {
     }
   }
 }
+
+module.exports = { CartManager };

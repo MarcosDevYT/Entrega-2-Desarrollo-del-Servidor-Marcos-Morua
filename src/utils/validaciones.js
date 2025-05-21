@@ -10,7 +10,7 @@ const camposObligatorios = [
 ];
 
 // Validamos el producto para el POST, asi tenemos el producto sin errores
-export const validatePostProduct = (product, productList) => {
+const validatePostProduct = (product, productList) => {
   // Verificar campos requeridos
   for (const camp of camposObligatorios) {
     if (!(camp in product)) {
@@ -59,7 +59,7 @@ export const validatePostProduct = (product, productList) => {
 };
 
 // Validamos el producto para el PUT y solo pasamos los campos que se envían
-export const validatePutProduct = (product) => {
+const validatePutProduct = (product) => {
   // Verificar que no existan campos extra
   const extraFields = Object.keys(product).filter(
     (key) => !camposObligatorios.includes(key)
@@ -111,4 +111,9 @@ export const validatePutProduct = (product) => {
     }
   }
   return true;
+};
+
+module.exports = {
+  validatePostProduct,
+  validatePutProduct,
 };
