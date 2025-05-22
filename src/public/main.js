@@ -14,14 +14,20 @@ const validateForm = (form) => {
   });
 
   // Validar que al menos una imagen esté presente
+  const imageType = form.querySelector('input[name="imageType"]:checked').value;
   const imageUrl = form.querySelector('input[name="imageUrl"]');
   const imageFile = form.querySelector('input[name="imageFile"]');
 
+  if (imageType === "url" && !imageUrl.value.trim()) {
+    alert("Por favor ingresa una URL de imagen válida");
+    return false;
+  }
+
   if (
-    !imageUrl.value.trim() &&
+    imageType === "file" &&
     (!imageFile.files || imageFile.files.length === 0)
   ) {
-    alert("Por favor ingresa una URL o sube una imagen");
+    alert("Por favor selecciona una imagen para subir");
     return false;
   }
 
@@ -30,23 +36,41 @@ const validateForm = (form) => {
 
 // Validar que el codigo no se repita
 const validateCode = async (productId, code) => {
-  const products = await GETProducts();
-  if (!products) {
-    alert("Error al obtener los productos");
-    // Si no se pueden obtener productos, asumimos que no hay duplicados
+  try {
+    const products = await GETProducts();
+    if (!products) {
+      console.error("Error al obtener los productos");
+      // Si no se pueden obtener productos, asumimos que no hay duplicados
+      return true;
+    }
+
+    // Convertir productId a número si es una cadena, o dejarlo como está si es null/undefined
+    const currentId = productId ? Number(productId) : null;
+
+    // Buscar si hay algún producto con el mismo código pero distinto ID
+    const codeExists = products.some((product) => {
+      // Convertir el ID del producto a número para comparación segura
+      const productIdNum = Number(product.id);
+      return (
+        product.code === code &&
+        (currentId === null || productIdNum !== currentId)
+      );
+    });
+
+    if (codeExists) {
+      console.log(
+        `El código "${code}" ya está siendo utilizado por otro producto`
+      );
+      alert(`El código "${code}" ya está siendo utilizado por otro producto`);
+      return false;
+    }
+
     return true;
+  } catch (error) {
+    console.error("Error en validateCode:", error);
+    alert("Error al validar el código del producto");
+    return false;
   }
-
-  const codeExists = products.some(
-    (product) => product.code === code && product.id !== productId
-  );
-
-  if (codeExists) {
-    alert(`El codigo ${code} ya lo posee otro producto`);
-    return true;
-  }
-
-  return false;
 };
 
 // Manejar el envío del formulario
@@ -73,52 +97,49 @@ const handleSubmit = async (e) => {
     thumbnails: [],
   };
 
-  // obtenemos el id del producto si lo posee
-  let productId = formData.get("id").trim();
-
-  // Agregar la URL o el nombre del archivo al array de thumbnails
+  let productId = formData.get("id")?.trim(); // Usar encadenamiento opcional para evitar errores
   const imageUrl = formData.get("imageUrl");
   const imageFile = formData.get("imageFile");
 
-  if (imageUrl) {
-    productData.thumbnails.push(imageUrl);
-  } else if (imageFile && imageFile.size > 0) {
-    // Subir el nombre del archivo
-    productData.thumbnails.push(imageFile.name);
-  }
+  try {
+    // Manejar la imagen
+    if (imageUrl) {
+      productData.thumbnails.push(imageUrl);
+    } else if (imageFile && imageFile.size > 0) {
+      // Subir la imagen y obtener la URL
+      const imagePath = await uploadImage(imageFile);
+      productData.thumbnails.push(`http://localhost:8080${imagePath}`);
+    }
 
-  if (isRealTimeView()) {
-    const hasDuplicate = await validateCode(productId, productData.code);
-    if (hasDuplicate) return;
+    // Validar el código antes de continuar
+    const isCodeValid = await validateCode(productId, productData.code);
+    if (!isCodeValid) {
+      return; // No continuar si hay un código duplicado
+    }
 
-    realTimeProductAction(productId, productData);
-    e.target.reset();
-    modalClose();
-    return;
-  }
+    if (isRealTimeView()) {
+      // Para la vista en tiempo real
+      realTimeProductAction(productId, productData);
+      e.target.reset();
+      modalClose();
+    } else {
+      // Para la vista normal (HTTP)
+      if (!productId) {
+        await POSTProduct(productData);
+      } else {
+        await PUTProduct(productId, productData);
+      }
 
-  // Enviar por HTTP
-
-  if (!productId) {
-    // Si no tenemos el productId es porque es un nuevo producto
-    if (await validateCode(null, productData.code)) return;
-
-    POSTProduct(productData);
-
-    e.target.reset();
-
-    modalClose();
-    window.location.reload();
-  } else {
-    if (await validateCode(productId, productData.code)) return;
-
-    // Si tenemos el productId es porque es un producto a editar
-    PUTProduct(productId, productData);
-
-    e.target.reset();
-
-    modalClose();
-    window.location.reload();
+      // Recargar la página después de guardar
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error("Error al procesar el formulario:", error);
+    alert(
+      `Error al ${productId ? "actualizar" : "crear"} el producto: ${
+        error.message
+      }`
+    );
   }
 };
 

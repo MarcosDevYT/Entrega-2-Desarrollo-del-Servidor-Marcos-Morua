@@ -1,6 +1,8 @@
 const productRouter = require("./routes/products.router.js");
 const cartRouter = require("./routes/carts.router.js");
 const viewsRouter = require("./routes/views.router.js");
+const uploadsRouter = require("./routes/uploads.router.js");
+
 const {
   ProductManager,
 } = require("./controllers/productManager.controller.js");
@@ -15,7 +17,6 @@ const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 
 const handlebars = require("express-handlebars");
-const multer = require("multer");
 
 const PORT = 8080;
 
@@ -37,42 +38,12 @@ app.engine(
 app.set("view engine", "handlebars");
 app.set("views", __dirname + "/views");
 
-app.use(express.static(__dirname + "/public"));
-app.use(express.static(__dirname + "/views"));
-
 //
-// Multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
-    );
-  },
-});
+// Static Routes
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "views")));
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error("Solo se permiten imágenes (jpeg, jpg, png, gif)"));
-  },
-}).single("imageFile");
-
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.resolve(__dirname, "..", "uploads")));
 
 //
 // Socket
@@ -129,22 +100,7 @@ io.on("connection", async (socket) => {
 // Routers
 app.use("/api/products", productRouter);
 app.use("/api/carts", cartRouter);
-app.post("/api/uploads", (req, res) => {
-  upload(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ error: err.message });
-    }
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ error: "No se ha seleccionado ningún archivo" });
-    }
-    res.json({
-      message: "Imagen subida exitosamente",
-      filePath: `/uploads/${req.file.filename}`,
-    });
-  });
-});
+app.use("/api/uploads", uploadsRouter);
 
 //
 // Views

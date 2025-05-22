@@ -81,7 +81,7 @@ const itemDropdown = (id) => {
       </span>
 
       <div
-        class="absolute hidden border border-black/10 rounded-md top-5 right-0 bg-white z-10 dropdown-menu"
+        class="absolute hidden border border-black/10 rounded-md right-5 top-1/2 transform -translate-y-[52%] bg-white z-10 dropdown-menu"
       >
         <p class="font-medium text-base p-2 px-3">Acciones</p>
         <hr class="border-black/10" />
@@ -99,18 +99,82 @@ const itemDropdown = (id) => {
 };
 
 // Funcionalidad para editar o agregar un producto
-const realTimeProductAction = (productId, productData) => {
-  // Enviar a través de WebSocket
-  if (productId) {
-    socket.emit("editProduct", { productId, productData });
-  } else {
-    socket.emit("newProduct", productData);
-  }
+const realTimeProductAction = async (productId, productData) => {
+  try {
+    // Si es una edición (tiene productId)
+    if (productId) {
+      // Verificar si hay imágenes nuevas
+      if (productData.thumbnails && productData.thumbnails.length > 0) {
+        // Obtener el producto actual para verificar las imágenes antiguas
+        const currentProduct = await GETProductById(productId);
 
-  return;
+        if (currentProduct && currentProduct.thumbnails) {
+          // Filtrar las imágenes antiguas que no están en las nuevas
+          const imagesToDelete = currentProduct.thumbnails.filter(
+            (oldImg) =>
+              oldImg.startsWith("http://localhost:8080/uploads/") &&
+              !productData.thumbnails.includes(oldImg)
+          );
+
+          // Eliminar imágenes antiguas que ya no se usan
+          for (const imgToDelete of imagesToDelete) {
+            try {
+              await deleteImage(imgToDelete);
+            } catch (error) {
+              console.warn(
+                "No se pudo eliminar la imagen antigua:",
+                error.message
+              );
+            }
+          }
+        }
+      }
+
+      // Enviar la actualización a través de WebSocket
+      socket.emit("editProduct", { productId, productData });
+    } else {
+      // Si es un producto nuevo, simplemente lo enviamos
+      socket.emit("newProduct", productData);
+    }
+  } catch (error) {
+    console.error("Error en realTimeProductAction:", error);
+    // Podrías querer mostrar un mensaje de error al usuario aquí
+    throw error; // Propagar el error para que pueda ser manejado por el llamador
+  }
 };
 
 // Funcionalidad para eliminar un producto
-const realTimeDeleteProduct = (productId) => {
-  socket.emit("deleteProduct", productId);
+const realTimeDeleteProduct = async (productId) => {
+  try {
+    // Primero obtenemos el producto para ver si tiene imágenes
+    const product = await GETProductById(productId);
+
+    // Si el producto no existe, salimos
+    if (!product) {
+      console.error("No se pudo obtener el producto para eliminar");
+      return;
+    }
+
+    // Si el producto tiene thumbnails, intentamos eliminar las imágenes locales
+    if (product.thumbnails && product.thumbnails.length > 0) {
+      for (const thumbnail of product.thumbnails) {
+        try {
+          // Verificar si es una imagen local (comienza con http://localhost:8080/uploads/)
+          if (
+            thumbnail &&
+            thumbnail.startsWith("http://localhost:8080/uploads/")
+          ) {
+            await deleteImage(thumbnail);
+          }
+        } catch (imageError) {
+          console.warn("No se pudo eliminar la imagen:", imageError.message);
+        }
+      }
+    }
+
+    // Una vez eliminadas las imágenes (o si no había), eliminamos el producto
+    socket.emit("deleteProduct", productId);
+  } catch (error) {
+    console.error("Error al eliminar el producto:", error);
+  }
 };

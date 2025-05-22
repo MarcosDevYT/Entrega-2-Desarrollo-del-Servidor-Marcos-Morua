@@ -59,24 +59,39 @@ modalForm.addEventListener("keydown", function (e) {
 const setupImageInputToggle = () => {
   const radioButtons = document.querySelectorAll(".image-type-radio");
   const imageInputs = document.querySelectorAll(".image-input");
+  const imageUrl = document.querySelector('input[name="imageUrl"]');
+  const imageFile = document.querySelector('input[name="imageFile"]');
 
-  // Función para mostrar el input correspondiente
   const toggleInputs = () => {
     const selectedValue = document.querySelector(
       'input[name="imageType"]:checked'
     ).value;
 
+    // Ocultar todos los inputs
     imageInputs.forEach((input) => {
       input.classList.add("hidden");
     });
 
+    // Mostrar el input seleccionado
     const targetInput = document.getElementById(`${selectedValue}Input`);
     if (targetInput) {
       targetInput.classList.remove("hidden");
     }
+
+    // Manejar el required dinámicamente
+    if (selectedValue === "url") {
+      imageUrl.setAttribute("required", "");
+      imageFile.removeAttribute("required");
+      // Limpiar el input file
+      imageFile.value = "";
+    } else {
+      imageFile.setAttribute("required", "");
+      imageUrl.removeAttribute("required");
+      // Limpiar el input url
+      imageUrl.value = "";
+    }
   };
 
-  // Añadir event listeners a los radio buttons
   radioButtons.forEach((radio) => {
     radio.addEventListener("change", toggleInputs);
   });
@@ -84,7 +99,6 @@ const setupImageInputToggle = () => {
   // Ejecutar al cargar la página
   toggleInputs();
 };
-
 /*
   Funcionalidad para el dropdown de acciones
 */
